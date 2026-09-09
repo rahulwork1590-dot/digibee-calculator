@@ -24,13 +24,18 @@ const DATA_FILE = path.join(DATA_DIR, "leads.json");
 
 let poolPromise: Promise<import("pg").Pool> | null = null;
 
+// Vercel's Postgres integration sets POSTGRES_URL; a manual/Neon setup uses DATABASE_URL
+function databaseUrl(): string | undefined {
+  return process.env.DATABASE_URL ?? process.env.POSTGRES_URL;
+}
+
 function needsSsl(url: string): boolean {
   if (process.env.DATABASE_SSL === "disable") return false;
   return !/localhost|127\.0\.0\.1/.test(url);
 }
 
 async function getPool(): Promise<import("pg").Pool | null> {
-  const url = process.env.DATABASE_URL;
+  const url = databaseUrl();
   if (!url) return null;
   if (!poolPromise) {
     poolPromise = (async () => {
@@ -143,5 +148,5 @@ export async function listLeads(limit = 500): Promise<LeadRecord[]> {
 }
 
 export function storageMode(): "postgres" | "file" {
-  return process.env.DATABASE_URL ? "postgres" : "file";
+  return databaseUrl() ? "postgres" : "file";
 }
