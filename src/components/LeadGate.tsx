@@ -39,17 +39,20 @@ export default function LeadGate({
 }: Readonly<Props>) {
   const firstRef = useRef<HTMLInputElement>(null);
 
+  // focus the first field only when the dialog opens
   useEffect(() => {
     if (!open) return;
     const t = setTimeout(() => firstRef.current?.focus(), 50);
+    return () => clearTimeout(t);
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape" && !submitting) onClose();
     };
     window.addEventListener("keydown", onKey);
-    return () => {
-      clearTimeout(t);
-      window.removeEventListener("keydown", onKey);
-    };
+    return () => window.removeEventListener("keydown", onKey);
   }, [open, submitting, onClose]);
 
   if (!open) return null;
